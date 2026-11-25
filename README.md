@@ -1,5 +1,5 @@
 
-# 📡 LAB12 — Enterprise Wireless Network
+# 📡Enterprise Wireless Network
 
 **Cisco WLC | WPA2 | RADIUS | Network Troubleshooting**
 
