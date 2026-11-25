@@ -1,123 +1,170 @@
 
-# 📡Enterprise Wireless Network
+from pathlib import Path
+import zipfile
 
-**Cisco WLC | WPA2 | RADIUS | Network Troubleshooting**
+base = Path("/mnt/data/LAB12_Enterprise_Wireless_Network")
+readme_path = base / "README.md"
 
-![Cisco](https://img.shields.io/badge/Cisco-Networking-049FD9)
-![Wireless](https://img.shields.io/badge/Wireless-WPA2-blue)
-![Security](https://img.shields.io/badge/Security-802.1X-green)
+readme = """# LAB12 — Enterprise Wireless Network
 
-## 🎯 Objetivo y desafío
+## Objetivo
 
-El objetivo inicial de este laboratorio fue implementar una
-infraestructura inalámbrica empresarial centralizada, utilizando
-Cisco WLC, Lightweight AP, segmentación mediante VLANs y
-autenticación WPA2-Personal y WPA2-Enterprise.
+Implementar una red inalámbrica empresarial en Cisco Packet Tracer utilizando:
 
-Durante la implementación, a pesar de verificar las
-configuraciones, se detectó un comportamiento inesperado
-en el etiquetado 802.1Q del tráfico inalámbrico.
+- Cisco WLC
+- Lightweight AP
+- VLANs
+- Trunks 802.1Q
+- Router-on-a-Stick
+- DHCP
+- WPA2-Personal
+- WPA2-Enterprise
+- RADIUS / 802.1X
 
-Esta situación transformó el laboratorio en una oportunidad
-para profundizar en el análisis de tráfico, investigar las
-posibles limitaciones del simulador y desarrollar una
-metodología de troubleshooting basada en evidencia.
+Durante las pruebas, los clientes inalámbricos lograron autenticarse correctamente, pero recibieron direcciones IP de la VLAN de management en lugar de las VLAN asignadas a cada WLAN.
 
-## ⚙️ Tecnologías implementadas
-
-- Wireless LAN Controller (WLC).
-- Lightweight AP y CAPWAP.
-- WPA2-Personal y WPA2-Enterprise.
-- AAA, RADIUS e IEEE 802.1X.
-- VLANs y trunks 802.1Q.
-- Router-on-a-Stick y DHCP.
-
-## 🌐 Diseño de red
-
-| VLAN | Función | Subred |
-|---|---|---|
-| 10 | Management | 192.168.10.0/24 |
-| 20 | WIFI-USERS | 192.168.20.0/24 |
-| 30 | WIFI-CORP | 192.168.30.0/24 |
-| 40 | AAA Services | 192.168.40.0/24 |
-
-## 🔐 Seguridad Wireless
-
-| Configuración | WPA2-Personal | WPA2-Enterprise |
-|---|:---:|:---:|
-| SSID | WIFI-USERS | WIFI-CORP |
-| VLAN | 20 | 30 |
-| WPA2 | ✅ | ✅ |
-| AES | ✅ | ✅ |
-| TKIP | ⬜ | ⬜ |
-| PSK | ✅ | ⬜ |
-| 802.1X | ⬜ | ✅ |
-| RADIUS | ⬜ | ✅ |
-
-La autenticación Enterprise se validó mediante pruebas
-con credenciales correctas e incorrectas, comprobando
-el rechazo y la recuperación de la conexión.
-
-## 🔍 Investigación y troubleshooting
-
-Los clientes inalámbricos se autenticaban correctamente,
-pero obtenían direcciones IP de la VLAN de management
-en lugar de las VLANs asignadas a sus respectivas WLAN.
-
-Para identificar el origen del problema se realizaron:
-
-- Verificación de trunks e interfaces dinámicas del WLC.
-- Validación de routing y DHCP mediante tráfico cableado.
-- Análisis de tablas de direcciones MAC.
-- Inspección de encabezados Ethernet en Simulation Mode.
-- Comparación del etiquetado 802.1Q entre ambos escenarios.
-
-### Evidencia obtenida
-
-| Verificación | Cableado | Inalámbrico |
-|---|:---:|:---:|
-| Etiquetado 802.1Q visible | ✅ | ❌ |
-| Clasificación VLAN correcta | ✅ | ❌ |
-| DHCP en subred esperada | ✅ | ❌ |
-
-Las direcciones MAC de ambos clientes inalámbricos fueron
-aprendidas en la VLAN nativa 10 a través del puerto
-conectado al WLC.
-
-La evidencia apunta a una posible limitación del
-etiquetado 802.1Q en Packet Tracer, aunque su causa
-definitiva permanece sin confirmar.
-
-## 📊 Resultados
-
-- [x] Registro del AP y comunicación CAPWAP.
-- [x] WPA2-Personal.
-- [x] WPA2-Enterprise y autenticación RADIUS.
-- [x] Routing y DHCP cableado.
-- [x] Análisis de tráfico y aislamiento del problema.
-- [ ] Segmentación inalámbrica efectiva.
-
-## 💡 Aprendizaje y reflexión
-
-No todos los desafíos técnicos se resuelven modificando
-una configuración. En ocasiones, las limitaciones de
-una herramienta obligan a investigar más allá de lo
-esperado.
-
-Este laboratorio permitió profundizar en el funcionamiento
-del tráfico inalámbrico, diferenciar los problemas de
-autenticación de los de segmentación y fundamentar
-cada diagnóstico mediante evidencia técnica.
-
-El valor del proyecto no reside únicamente en configurar
-una infraestructura, sino también en comprender su
-comportamiento, cuestionar los resultados y desarrollar
-criterio técnico frente a situaciones inesperadas.
+El laboratorio terminó convirtiéndose también en una práctica de troubleshooting.
 
 ---
 
-**Environment:** Cisco Packet Tracer 9.0.0.0810
+## Topología
 
-**Status:** Authentication Validated | VLAN Segmentation Unresolved
+![Topología del laboratorio](images/wireless-no-8021q-tag.png)
 
-**Date:** November 2026
+> En el repositorio puede reemplazarse esta imagen por la captura completa de la topología de Packet Tracer.
+
+---
+
+## VLANs
+
+| VLAN | Función | Subred |
+|---:|---|---|
+| 10 | Management | 192.168.10.0/24 |
+| 20 | WIFI-USERS | 192.168.20.0/24 |
+| 30 | WIFI-CORP | 192.168.30.0/24 |
+| 40 | AAA / RADIUS | 192.168.40.0/24 |
+
+---
+
+## Wireless
+
+### WIFI-USERS
+
+- VLAN 20
+- WPA2-Personal
+- AES
+- PSK configurada localmente
+
+### WIFI-CORP
+
+- VLAN 30
+- WPA2-Enterprise
+- AES
+- 802.1X
+- RADIUS
+
+La autenticación Enterprise fue probada con credenciales correctas e incorrectas.
+
+---
+
+## Credenciales
+
+Las contraseñas, PSK y shared secrets utilizados en el laboratorio no se publican en el repositorio.
+
+```text
+WLC Password: [REDACTED]
+WIFI-USERS PSK: [REDACTED]
+RADIUS Shared Secret: [REDACTED]
+
+802.1X Test User: corpuser
+Password: [REDACTED]
+```
+
+---
+
+## Problema encontrado
+
+Los clientes inalámbricos se autenticaban correctamente, pero obtenían direcciones IP de la VLAN 10 en lugar de sus VLAN correspondientes.
+
+Comportamiento esperado:
+
+```text
+WIFI-USERS -> VLAN 20
+WIFI-CORP  -> VLAN 30
+```
+
+Comportamiento observado:
+
+```text
+Wireless clients -> VLAN 10
+```
+
+---
+
+## Troubleshooting realizado
+
+Se verificó:
+
+- configuración de trunks;
+- interfaces dinámicas del WLC;
+- mapeo WLAN-VLAN;
+- Router-on-a-Stick;
+- DHCP;
+- tablas MAC;
+- tráfico en Simulation Mode;
+- presencia de etiquetas 802.1Q.
+
+La red cableada funcionó correctamente.
+
+En las pruebas de tráfico cableado se observó el encabezado 802.1Q esperado.
+
+![Tráfico con etiqueta 802.1Q](images/wired-8021q-tagged.png)
+
+En el tráfico inalámbrico inspeccionado no se observó el mismo comportamiento esperado de etiquetado.
+
+---
+
+## Resultado
+
+- [x] AP registrado
+- [x] CAPWAP operativo
+- [x] WPA2-Personal
+- [x] WPA2-Enterprise
+- [x] RADIUS / 802.1X
+- [x] DHCP cableado
+- [x] Router-on-a-Stick
+- [x] Troubleshooting con Simulation Mode
+- [x] Análisis de tablas MAC
+- [ ] Segmentación inalámbrica resuelta
+
+---
+
+## Conclusión
+
+El laboratorio permitió comprobar que autenticación y segmentación son procesos diferentes.
+
+Aunque WPA2 y RADIUS funcionaron correctamente, la asignación de VLAN de los clientes inalámbricos no se comportó como se esperaba.
+
+La evidencia obtenida sugiere un posible comportamiento o limitación de Cisco Packet Tracer relacionado con la segmentación VLAN inalámbrica, pero la causa definitiva no fue confirmada.
+
+Por ese motivo, el problema se documenta como **no resuelto**, evitando asumir una causa sin evidencia suficiente.
+
+---
+
+## Entorno
+
+- Cisco Packet Tracer 9.0.0.0810
+- Fecha: noviembre de 2026
+- Estado: Authentication Validated / VLAN Segmentation Unresolved
+"""
+
+readme_path.write_text(readme, encoding="utf-8")
+
+zip_path = Path("/mnt/data/LAB12_Enterprise_Wireless_Network_GitHub_simple.zip")
+with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+    for p in base.rglob("*"):
+        if p.is_file():
+            z.write(p, p.relative_to(base))
+
+print(readme_path)
+print(zip_path)
