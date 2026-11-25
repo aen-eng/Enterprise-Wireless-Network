@@ -130,6 +130,7 @@ los diagnósticos mediante evidencia técnica y diferenciar
 los problemas de autenticación de los de segmentación.
 
 ---
+![Topología del laboratorio](images/topology.png)
 
 **Environment:** Cisco Packet Tracer 9.0.0.0810
 
