@@ -1,170 +1,153 @@
 
-from pathlib import Path
-import zipfile
+# 📡 Enterprise Wireless Network
 
-base = Path("/mnt/data/LAB12_Enterprise_Wireless_Network")
-readme_path = base / "README.md"
+**Cisco WLC | WPA2 | RADIUS | 802.1Q Troubleshooting**
 
-readme = """# LAB12 — Enterprise Wireless Network
+![Cisco](https://img.shields.io/badge/Cisco-Networking-049FD9)
+![Wireless](https://img.shields.io/badge/Wireless-WPA2-blue)
+![Security](https://img.shields.io/badge/Security-802.1X-green)
+![Packet Tracer](https://img.shields.io/badge/Packet%20Tracer-9.0-orange)
 
-## Objetivo
+## 🎯 Descripción
 
-Implementar una red inalámbrica empresarial en Cisco Packet Tracer utilizando:
+Implementación de una infraestructura inalámbrica empresarial
+centralizada mediante Cisco WLC y Lightweight AP, integrando
+segmentación VLAN, DHCP y autenticación RADIUS.
 
-- Cisco WLC
-- Lightweight AP
-- VLANs
-- Trunks 802.1Q
-- Router-on-a-Stick
-- DHCP
-- WPA2-Personal
-- WPA2-Enterprise
-- RADIUS / 802.1X
+Durante las pruebas se detectó un comportamiento inesperado
+en el etiquetado 802.1Q, que dio lugar a un proceso de
+troubleshooting basado en evidencia técnica.
 
-Durante las pruebas, los clientes inalámbricos lograron autenticarse correctamente, pero recibieron direcciones IP de la VLAN de management en lugar de las VLAN asignadas a cada WLAN.
+## 🌐 Topología
 
-El laboratorio terminó convirtiéndose también en una práctica de troubleshooting.
-
----
-
-## Topología
-
-![Topología del laboratorio](images/wireless-no-8021q-tag.png)
-
-> En el repositorio puede reemplazarse esta imagen por la captura completa de la topología de Packet Tracer.
-
----
-
-## VLANs
-
-| VLAN | Función | Subred |
-|---:|---|---|
-| 10 | Management | 192.168.10.0/24 |
-| 20 | WIFI-USERS | 192.168.20.0/24 |
-| 30 | WIFI-CORP | 192.168.30.0/24 |
-| 40 | AAA / RADIUS | 192.168.40.0/24 |
-
----
-
-## Wireless
-
-### WIFI-USERS
-
-- VLAN 20
-- WPA2-Personal
-- AES
-- PSK configurada localmente
-
-### WIFI-CORP
-
-- VLAN 30
-- WPA2-Enterprise
-- AES
-- 802.1X
-- RADIUS
-
-La autenticación Enterprise fue probada con credenciales correctas e incorrectas.
-
----
-
-## Credenciales
-
-Las contraseñas, PSK y shared secrets utilizados en el laboratorio no se publican en el repositorio.
-
-```text
-WLC Password: [REDACTED]
-WIFI-USERS PSK: [REDACTED]
-RADIUS Shared Secret: [REDACTED]
-
-802.1X Test User: corpuser
-Password: [REDACTED]
+```mermaid
+graph TD
+ R1[Router-on-a-Stick] --- SW1[Switch]
+ SW1 ---|Trunk - Native VLAN 10| WLC[WLC]
+ SW1 ---|VLAN 10| LAP[Lightweight AP]
+ SW1 ---|VLAN 10| ADMIN[PC-ADMIN]
+ SW1 ---|VLAN 40| AAA[RADIUS Server]
+ SW1 ---|VLAN 20| PC[PC cableado]
+ LAP -. WPA2-Personal .- USERS[Laptop-USERS]
+ LAP -. WPA2-Enterprise .- CORP[Laptop-CORP]
 ```
 
----
+## 📋 Direccionamiento
 
-## Problema encontrado
+| VLAN | Función | Subred | Gateway |
+|---|---|---|---|
+| 10 | Management | 192.168.10.0/24 | 192.168.10.1 |
+| 20 | WIFI-USERS | 192.168.20.0/24 | 192.168.20.1 |
+| 30 | WIFI-CORP | 192.168.30.0/24 | 192.168.30.1 |
+| 40 | AAA Services | 192.168.40.0/24 | 192.168.40.1 |
 
-Los clientes inalámbricos se autenticaban correctamente, pero obtenían direcciones IP de la VLAN 10 en lugar de sus VLAN correspondientes.
+- WLC Management: `192.168.10.10`
+- RADIUS Server: `192.168.40.10`
+- RADIUS Authentication: UDP 1812
 
-Comportamiento esperado:
+## 🔐 Seguridad Wireless
 
-```text
-WIFI-USERS -> VLAN 20
-WIFI-CORP  -> VLAN 30
+| Configuración | WPA2-Personal | WPA2-Enterprise |
+|---|:---:|:---:|
+| SSID | WIFI-USERS | WIFI-CORP |
+| VLAN | 20 | 30 |
+| WPA2 | ✅ | ✅ |
+| AES | ✅ | ✅ |
+| TKIP | ⬜ | ⬜ |
+| PSK | ✅ | ⬜ |
+| 802.1X | ⬜ | ✅ |
+| RADIUS | ⬜ | ✅ |
+
+La autenticación Enterprise se verificó utilizando
+credenciales correctas e incorrectas, comprobando
+el rechazo y la recuperación de la conexión.
+
+## 🔑 Credenciales del laboratorio
+
+| Servicio | Usuario / Identificador | Contraseña / Clave |
+|---|---|---|
+| WLC Administration | `admin` | `Cisco123.` |
+| WIFI-USERS WPA2-PSK | `WIFI-USERS` | `Wireless123.` |
+| RADIUS Client | `WLC1` | `Radius123.` |
+| WPA2-Enterprise / 802.1X | `corpuser` | `Corp123.` |
+
+> Estas credenciales pertenecen exclusivamente al laboratorio de Packet Tracer y no se reutilizan en sistemas reales.
+
+## 🔍 Troubleshooting
+
+### Problema detectado
+
+Ambos clientes inalámbricos se autenticaban correctamente,
+pero recibían direcciones IP de la VLAN 10 en lugar
+de sus respectivas VLANs.
+
+### Verificación
+
+```cisco
+show interfaces trunk
+show interfaces gigabitEthernet 0/2 switchport
+show mac address-table dynamic
+show ip interface brief
+show ip dhcp pool
 ```
 
-Comportamiento observado:
+Se verificaron las interfaces dinámicas del WLC,
+la asociación WLAN–VLAN, los trunks y el funcionamiento
+de DHCP mediante un cliente cableado.
+
+### Evidencia técnica
+
+La tabla MAC mostró que ambos clientes inalámbricos
+eran aprendidos en la VLAN 10 por el puerto del WLC.
 
 ```text
-Wireless clients -> VLAN 10
+Vlan    Mac Address       Type       Ports
+10      0001.42b3.bcd9    DYNAMIC    Gi0/2
+10      00e0.a391.6376    DYNAMIC    Gi0/2
 ```
 
----
+Mediante Simulation Mode se compararon los encabezados
+Ethernet del tráfico cableado e inalámbrico.
 
-## Troubleshooting realizado
+| Verificación | Cableado | Inalámbrico |
+|---|:---:|:---:|
+| TPID y TCI visibles | ✅ | ❌ |
+| Clasificación VLAN correcta | ✅ | ❌ |
+| DHCP en subred esperada | ✅ | ❌ |
 
-Se verificó:
+La evidencia es consistente con la hipótesis de que el tráfico
+procedente del WLC no está siendo clasificado con la etiqueta
+802.1Q esperada y termina asociado a la VLAN nativa 10.
 
-- configuración de trunks;
-- interfaces dinámicas del WLC;
-- mapeo WLAN-VLAN;
-- Router-on-a-Stick;
-- DHCP;
-- tablas MAC;
-- tráfico en Simulation Mode;
-- presencia de etiquetas 802.1Q.
+## 📊 Resultados
 
-La red cableada funcionó correctamente.
+- [x] VLANs y trunks 802.1Q.
+- [x] Router-on-a-Stick.
+- [x] DHCP cableado.
+- [x] Registro del Lightweight AP y CAPWAP.
+- [x] Configuración de interfaces dinámicas.
+- [x] WPA2-Personal.
+- [x] WPA2-Enterprise y autenticación RADIUS.
+- [x] Análisis de tablas MAC y tramas Ethernet.
+- [ ] Segmentación inalámbrica efectiva.
 
-En las pruebas de tráfico cableado se observó el encabezado 802.1Q esperado.
+## 💡 Conclusión
 
-![Tráfico con etiqueta 802.1Q](images/wired-8021q-tagged.png)
+El proceso de troubleshooting permitió aislar el problema
+en el camino de datos entre el WLC y el switch.
 
-En el tráfico inalámbrico inspeccionado no se observó el mismo comportamiento esperado de etiquetado.
+Los resultados apuntan a una posible limitación del
+etiquetado 802.1Q en Packet Tracer 9.0.0.0810,
+sin confirmación oficial de un bug.
 
----
-
-## Resultado
-
-- [x] AP registrado
-- [x] CAPWAP operativo
-- [x] WPA2-Personal
-- [x] WPA2-Enterprise
-- [x] RADIUS / 802.1X
-- [x] DHCP cableado
-- [x] Router-on-a-Stick
-- [x] Troubleshooting con Simulation Mode
-- [x] Análisis de tablas MAC
-- [ ] Segmentación inalámbrica resuelta
-
----
-
-## Conclusión
-
-El laboratorio permitió comprobar que autenticación y segmentación son procesos diferentes.
-
-Aunque WPA2 y RADIUS funcionaron correctamente, la asignación de VLAN de los clientes inalámbricos no se comportó como se esperaba.
-
-La evidencia obtenida sugiere un posible comportamiento o limitación de Cisco Packet Tracer relacionado con la segmentación VLAN inalámbrica, pero la causa definitiva no fue confirmada.
-
-Por ese motivo, el problema se documenta como **no resuelto**, evitando asumir una causa sin evidencia suficiente.
+El proyecto destaca la importancia de fundamentar
+los diagnósticos mediante evidencia técnica y diferenciar
+los problemas de autenticación de los de segmentación.
 
 ---
 
-## Entorno
+**Environment:** Cisco Packet Tracer 9.0.0.0810
 
-- Cisco Packet Tracer 9.0.0.0810
-- Fecha: noviembre de 2026
-- Estado: Authentication Validated / VLAN Segmentation Unresolved
-"""
+**Status:** Authentication Validated | VLAN Segmentation Unresolved
 
-readme_path.write_text(readme, encoding="utf-8")
-
-zip_path = Path("/mnt/data/LAB12_Enterprise_Wireless_Network_GitHub_simple.zip")
-with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
-    for p in base.rglob("*"):
-        if p.is_file():
-            z.write(p, p.relative_to(base))
-
-print(readme_path)
-print(zip_path)
+**Date:** November 2026
