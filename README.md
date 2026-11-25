@@ -1,12 +1,7 @@
 
-# 📡 Enterprise Wireless Network
+# 📡 LAB12 — Enterprise Wireless Network
 
 **Cisco WLC | WPA2 | RADIUS | 802.1Q Troubleshooting**
-
-![Cisco](https://img.shields.io/badge/Cisco-Networking-049FD9)
-![Wireless](https://img.shields.io/badge/Wireless-WPA2-blue)
-![Security](https://img.shields.io/badge/Security-802.1X-green)
-![Packet Tracer](https://img.shields.io/badge/Packet%20Tracer-9.0-orange)
 
 ## 🎯 Descripción
 
@@ -14,23 +9,13 @@ Implementación de una infraestructura inalámbrica empresarial
 centralizada mediante Cisco WLC y Lightweight AP, integrando
 segmentación VLAN, DHCP y autenticación RADIUS.
 
+Para el laboratorio se utilizó una topología compuesta por
+router, switch, Cisco WLC, Lightweight AP, servidor AAA/RADIUS,
+clientes cableados y clientes inalámbricos.
+
 Durante las pruebas se detectó un comportamiento inesperado
 en el etiquetado 802.1Q, que dio lugar a un proceso de
 troubleshooting basado en evidencia técnica.
-
-## 🌐 Topología
-
-```mermaid
-graph TD
- R1[Router-on-a-Stick] --- SW1[Switch]
- SW1 ---|Trunk - Native VLAN 10| WLC[WLC]
- SW1 ---|VLAN 10| LAP[Lightweight AP]
- SW1 ---|VLAN 10| ADMIN[PC-ADMIN]
- SW1 ---|VLAN 40| AAA[RADIUS Server]
- SW1 ---|VLAN 20| PC[PC cableado]
- LAP -. WPA2-Personal .- USERS[Laptop-USERS]
- LAP -. WPA2-Enterprise .- CORP[Laptop-CORP]
-```
 
 ## 📋 Direccionamiento
 
